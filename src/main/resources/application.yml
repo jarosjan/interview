@@ -1,0 +1,35 @@
+spring:
+  application:
+    name: jj
+
+  datasource:
+    url: jdbc:postgresql://postgres:5432/mydatabase
+    username: myuser
+    password: secret
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+jwt:
+  secret: V2h5IGRpZCB0aGUgc2NhcmVjcm93IHdpbiBhbiBhd2FyZD8gQmVjYXVzZSBoZSB3YXMgb3V0c3RhbmRpbmcgaW4gaGlzIGZpZWxkIQ==
+  expiration: 3600000 # 1 hour in milliseconds
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  endpoint:
+    metrics:
+      enabled: true
+    prometheus:
+      enabled: true
+    health:
+      show-details: always

@@ -1,0 +1,3 @@
+jwt:
+  secret: V2h5IGRvbid0IGVnZ3MgdGVsbCBqb2tlcz8gQmVjYXVzZSB0aGV5IG1pZ2h0IGNyYWNrIHVwIQ==
+  expiration: 3600000 # 1 hour in milliseconds
