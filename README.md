@@ -38,6 +38,10 @@ Prometheus and Grafana, with security handled via JWT tokens. All services can b
     - **Password**: `admin`
 - Grafana is set up to visualize the metrics collected by Prometheus. A pre-configured dashboard is automatically
   included after startup.
+- **Pre-configured Dashboard**: Grafana is set up to visualize the metrics collected by Prometheus.
+    - **IMPORTANT**: A **pre-configured dashboard** is automatically included after startup. This dashboard provides
+      critical insights into the application's performance and health, giving you real-time visibility into key metrics.
+      Make sure to explore this dashboard to monitor your application's status effectively.
 
 ### 5. **PostgreSQL Database**
 
