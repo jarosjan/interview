@@ -1,13 +1,15 @@
 package interview.jj.service;
 
 import interview.jj.dao.TbProjectRepository;
-import interview.jj.dao.TbUserRepository;
 import interview.jj.entity.TbProjectEntity;
 import interview.jj.entity.TbUserEntity;
 import interview.jj.exception.NotFoundException;
+import interview.jj.mapper.ProjectMapper;
 import interview.jj.model.ProjectCreateRequest;
 import interview.jj.model.ProjectResponse;
 import interview.jj.model.ProjectUpdateRequest;
+import interview.jj.retrieveService.ProjectRetrievalService;
+import interview.jj.retrieveService.UserRetrievalService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,30 +19,28 @@ import java.util.UUID;
 
 @Service
 public class ProjectService {
-    private final TbUserRepository tbUserRepository;
+    private final UserRetrievalService userRetrievalService;
     private final TbProjectRepository tbProjectRepository;
+    private final ProjectRetrievalService projectRetrievalService;
 
     @Autowired
-    public ProjectService(TbUserRepository tbUserRepository, TbProjectRepository tbProjectRepository) {
-        this.tbUserRepository = tbUserRepository;
+    public ProjectService(UserRetrievalService userRetrievalService,
+                          TbProjectRepository tbProjectRepository,
+                          ProjectRetrievalService projectRetrievalService) {
+        this.userRetrievalService = userRetrievalService;
         this.tbProjectRepository = tbProjectRepository;
+        this.projectRetrievalService = projectRetrievalService;
     }
 
-    public void createProject(String email, ProjectCreateRequest request) {
-        final TbUserEntity user = tbUserRepository.findByEmail(email)
-                .orElseThrow(() -> new NotFoundException("User with email " + email + " does not exist"));
+    public ProjectResponse createProject(String email, ProjectCreateRequest request) {
+        final TbUserEntity user = userRetrievalService.findByEmail(email);
+        final TbProjectEntity project = ProjectMapper.toEntity(request, user);
 
-        TbProjectEntity project = new TbProjectEntity();
-        project.setName(request.name());
-        project.setUser(user);
-        project.setId(UUID.randomUUID());
-
-        tbProjectRepository.save(project);
+        return ProjectMapper.toResponse(tbProjectRepository.save(project));
     }
 
     public List<ProjectResponse> getProjects(String email) {
-        final TbUserEntity user = tbUserRepository.findByEmail(email)
-                .orElseThrow(() -> new NotFoundException("User with email " + email + " does not exist"));
+        final TbUserEntity user = userRetrievalService.findByEmail(email);
 
         return tbProjectRepository.findByUser(user).stream()
                 .map(p -> new ProjectResponse(p.getId(), p.getName()))
@@ -48,35 +48,28 @@ public class ProjectService {
     }
 
     public ProjectResponse getProject(String email, UUID uuid) {
-        final TbUserEntity user = tbUserRepository.findByEmail(email)
-                .orElseThrow(() -> new NotFoundException("User with email " + email + " does not exist"));
+        final TbUserEntity user = userRetrievalService.findByEmail(email);
 
-
-        return tbProjectRepository.findByIdAndUser(uuid, user)
-                .map(p -> new ProjectResponse(p.getId(), p.getName()))
-                .orElseThrow(() -> new NotFoundException("Project with projectId " + uuid + " does not exist"));
+        return ProjectMapper.toResponse(projectRetrievalService.findByIdAndUser(uuid, user));
     }
 
     public ProjectResponse updateProject(String email, ProjectUpdateRequest request) {
-        final TbUserEntity user = tbUserRepository.findByEmail(email)
-                .orElseThrow(() -> new NotFoundException("User with email " + email + " does not exist"));
-
-        final TbProjectEntity project = tbProjectRepository.findByIdAndUser(request.id(), user)
-                .orElseThrow(() -> new NotFoundException("Project with projectId " + request.id() + " does not exist"));
+        final TbUserEntity user = userRetrievalService.findByEmail(email);
+        final TbProjectEntity project = projectRetrievalService.findByIdAndUser(request.id(), user);
 
         project.setName(request.name());
         tbProjectRepository.save(project);
 
-        return new ProjectResponse(project.getId(), project.getName());
+        return ProjectMapper.toResponse(project);
     }
 
     @Transactional
     public void deleteProject(String email, UUID uuid) {
-        final TbUserEntity user = tbUserRepository.findByEmail(email)
-                .orElseThrow(() -> new NotFoundException("User with email " + email + " does not exist"));
+        final TbUserEntity user = userRetrievalService.findByEmail(email);
 
-        tbProjectRepository.findByIdAndUser(uuid, user)
-                .orElseThrow(() -> new NotFoundException("Project with projectId " + uuid + " does not exist"));
+        if (!projectRetrievalService.existsByIdAndUser(uuid, user)) {
+            throw new NotFoundException("Project with projectId " + uuid + " does not exist");
+        }
 
         tbProjectRepository.deleteByIdAndUser(uuid, user);
     }

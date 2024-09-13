@@ -10,8 +10,6 @@ import java.util.Optional;
 public interface TbUserRepository extends JpaRepository<TbUserEntity, Long> {
     Optional<TbUserEntity> findByEmail(String email);
 
-    Optional<TbUserEntity> findByName(String name);
-
     boolean existsByEmail(String email);
 
     void deleteByEmail(String email);

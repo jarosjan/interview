@@ -16,6 +16,8 @@ public interface TbProjectRepository extends JpaRepository<TbProjectEntity, Long
 
     List<TbProjectEntity> findByUser(TbUserEntity user);
 
+    boolean existsByIdAndUser(UUID id, TbUserEntity user);
+
     void deleteByIdAndUser(UUID id, TbUserEntity user);
 
 }

@@ -8,6 +8,8 @@ import interview.jj.service.ProjectService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -26,37 +28,38 @@ public class ProjectController {
 
     @Operation(summary = "Create project")
     @PostMapping
-    public void createProject(@AuthenticatedEmail String email, @RequestBody ProjectCreateRequest request) {
+    public ResponseEntity<ProjectResponse> createProject(@AuthenticatedEmail String email, @RequestBody ProjectCreateRequest request) {
         log.info("Creating project with name: {}", request.name());
-        projectService.createProject(email, request);
+        return new ResponseEntity<>(projectService.createProject(email, request), HttpStatus.CREATED);
     }
 
     @Operation(summary = "Get all projects")
     @GetMapping("/all")
-    public List<ProjectResponse> getProjects(@AuthenticatedEmail String email) {
+    public ResponseEntity<List<ProjectResponse>> getProjects(@AuthenticatedEmail String email) {
         log.info("Getting all projects for user with email: {}", email);
-        return projectService.getProjects(email);
+        return new ResponseEntity<>(projectService.getProjects(email), HttpStatus.OK);
     }
 
     @Operation(summary = "Get project by id")
-    @GetMapping
-    public ProjectResponse getProject(@AuthenticatedEmail String email, @RequestParam UUID projectId) {
+    @GetMapping("/{projectId}")
+    public ResponseEntity<ProjectResponse> getProject(@AuthenticatedEmail String email, @PathVariable UUID projectId) {
         log.info("Getting project with projectId: {}", projectId);
-        return projectService.getProject(email, projectId);
+        return new ResponseEntity<>(projectService.getProject(email, projectId), HttpStatus.OK);
     }
 
     @Operation(summary = "Update project")
-    @PutMapping
-    public ProjectResponse updateProject(@AuthenticatedEmail String email, @RequestBody ProjectUpdateRequest request) {
+    @PatchMapping
+    public ResponseEntity<ProjectResponse> updateProject(@AuthenticatedEmail String email, @RequestBody ProjectUpdateRequest request) {
         log.info("Updating project with projectId: {}", request.id());
-        return projectService.updateProject(email, request);
+        return new ResponseEntity<>(projectService.updateProject(email, request), HttpStatus.OK);
     }
 
     @Operation(summary = "Delete project")
-    @DeleteMapping
-    public void deleteProject(@AuthenticatedEmail String email, @RequestParam UUID projectId) {
+    @DeleteMapping("/{projectId}")
+    public ResponseEntity<Void> deleteProject(@AuthenticatedEmail String email, @PathVariable UUID projectId) {
         log.info("Deleting project with projectId: {}", projectId);
         projectService.deleteProject(email, projectId);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
 }

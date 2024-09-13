@@ -1,11 +1,17 @@
 package interview.jj.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.UUID;
 
 @Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @Entity
 @Table(name = "tb_project")
 public class TbProjectEntity {
@@ -20,13 +26,4 @@ public class TbProjectEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private TbUserEntity user;
 
-    public TbProjectEntity(UUID id, String name, TbUserEntity user) {
-        this.id = id;
-        this.name = name;
-        this.user = user;
-    }
-
-    public TbProjectEntity() {
-
-    }
 }

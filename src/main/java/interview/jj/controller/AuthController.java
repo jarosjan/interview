@@ -6,6 +6,8 @@ import interview.jj.security.JwtTokenProvider;
 import interview.jj.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -33,7 +35,7 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public void registerUser(
+    public ResponseEntity<Void> registerUser(
             @Validated @RequestBody RegistrationRequest registrationRequest
     ) {
         log.info("Registering user with email: {}", registrationRequest.getEmail());
@@ -43,10 +45,11 @@ public class AuthController {
                 registrationRequest.getPassword(),
                 registrationRequest.getEmail()
         );
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @PostMapping("/login")
-    public Map<String, String> login(
+    public ResponseEntity<Map<String, String>> login(
             @RequestBody AuthRequest authRequest
     ) {
         log.info("Received login request for user: {}", authRequest.email());
@@ -62,7 +65,8 @@ public class AuthController {
         // Return the token in the response body
         Map<String, String> response = new HashMap<>();
         response.put("token", token);
-        return response;
+
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
 }

@@ -2,11 +2,11 @@ package interview.jj.service;
 
 import interview.jj.dao.TbUserRepository;
 import interview.jj.entity.TbUserEntity;
-import interview.jj.exception.NotFoundException;
 import interview.jj.exception.UserAlreadyExistsException;
-import interview.jj.model.ProjectResponse;
+import interview.jj.mapper.UserMapper;
 import interview.jj.model.UserEditRequest;
 import interview.jj.model.UserResponse;
+import interview.jj.retrieveService.UserRetrievalService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -16,26 +16,27 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserService {
     private final TbUserRepository tbUserRepository;
     private final PasswordEncoder passwordEncoder;
+    private final UserRetrievalService userRetrievalService;
 
     @Autowired
-    public UserService(TbUserRepository tbUserRepository, PasswordEncoder passwordEncoder) {
+    public UserService(TbUserRepository tbUserRepository,
+                       PasswordEncoder passwordEncoder,
+                       UserRetrievalService userRetrievalService) {
         this.tbUserRepository = tbUserRepository;
         this.passwordEncoder = passwordEncoder;
+        this.userRetrievalService = userRetrievalService;
     }
 
     public void registerUser(String name, String password, String email) {
         if (email == null || email.isEmpty()) {
             throw new IllegalArgumentException("Email cannot be empty");
         }
-        if (tbUserRepository.existsByEmail(email)) {
+        if (userRetrievalService.existsByEmail(email)) {
             throw new UserAlreadyExistsException("User with email " + email + " already exists");
         }
 
-        TbUserEntity user = new TbUserEntity();
-        user.setName(name);
-        user.setPassword(passwordEncoder.encode(password));
-        user.setEmail(email);
-        tbUserRepository.save(user);
+        final TbUserEntity userEntity = UserMapper.toEntity(name, passwordEncoder.encode(password), email);
+        tbUserRepository.save(userEntity);
     }
 
     @Transactional
@@ -44,27 +45,15 @@ public class UserService {
     }
 
     public UserResponse getUser(String email) {
-        final TbUserEntity entity = tbUserRepository.findByEmail(email)
-                .orElseThrow(() -> new NotFoundException("User with email " + email + " does not exist"));
-
-        return new UserResponse(
-                entity.getName(),
-                entity.getEmail(),
-                entity.getProjects().stream().map(p -> new ProjectResponse(p.getId(), p.getName())).toList()
-        );
+        return UserMapper.toResponse(userRetrievalService.findByEmail(email));
     }
 
     public UserResponse updateUser(String email, UserEditRequest userRequest) {
-        final TbUserEntity entity = tbUserRepository.findByEmail(email)
-                .orElseThrow(() -> new NotFoundException("User with email " + email + " does not exist"));
+        final TbUserEntity entity = userRetrievalService.findByEmail(email);
 
         entity.setName(userRequest.name());
         tbUserRepository.save(entity);
 
-        return new UserResponse(
-                entity.getName(),
-                entity.getEmail(),
-                entity.getProjects().stream().map(p -> new ProjectResponse(p.getId(), p.getName())).toList()
-        );
+        return UserMapper.toResponse(entity);
     }
 }
